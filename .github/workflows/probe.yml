@@ -16,19 +16,24 @@ jobs:
         with:
           node-version: '22'
 
-      - name: 安装 puppeteer
-        run: |
-          npm init -y > /dev/null 2>&1
-          npm install puppeteer@23 --no-audit --no-fund
-
-      - name: 无头探测
-        run: node probe.js || true
-
-      - name: 有头探测（xvfb）
+      - name: 安装 xvfb
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb
-          xvfb-run -a node probe.js --headful || true
 
-      - name: 换个关键词再试一次
-        run: node probe.js --kw="zb1 photocard" || true
+      - name: 安装 patchright + chromium
+        run: |
+          npm init -y > /dev/null 2>&1
+          npm install patchright --no-audit --no-fund
+          npx patchright install chromium --with-deps
+
+      - name: patchright 自带 chromium
+        run: xvfb-run -a node probe_patchright.js || true
+
+      - name: patchright 真实 Chrome
+        run: xvfb-run -a node probe_patchright.js --channel=chrome || true
+
+      - name: 对比 puppeteer 裸跑
+        run: |
+          npm install puppeteer@23 --no-audit --no-fund > /dev/null 2>&1
+          node probe.js || true
