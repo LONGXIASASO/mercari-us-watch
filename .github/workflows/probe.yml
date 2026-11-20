@@ -1,9 +1,15 @@
 name: probe-us
 
-# 临时探测：验证 GitHub 的海外机器能否通过美区煤炉的 Cloudflare 挑战
+# 临时探测：抓美区煤炉 /v1/api 的商品数据结构
 # 只保留 workflow_dispatch，不会自动跑。测完就删。
 on:
   workflow_dispatch:
+    inputs:
+      kw:
+        description: '搜索关键词'
+        required: false
+        default: 'zhanghao'
+        type: string
 
 jobs:
   probe:
@@ -16,24 +22,16 @@ jobs:
         with:
           node-version: '22'
 
-      - name: 安装 xvfb
+      - name: 安装 xvfb + patchright
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq xvfb
-
-      - name: 安装 patchright + chromium
-        run: |
           npm init -y > /dev/null 2>&1
           npm install patchright --no-audit --no-fund
           npx patchright install chromium --with-deps
 
-      - name: patchright 自带 chromium
-        run: xvfb-run -a node probe_patchright.js || true
-
-      - name: patchright 真实 Chrome
-        run: xvfb-run -a node probe_patchright.js --channel=chrome || true
-
-      - name: 对比 puppeteer 裸跑
+      - name: 抓接口结构
         run: |
-          npm install puppeteer@23 --no-audit --no-fund > /dev/null 2>&1
-          node probe.js || true
+          xvfb-run -a node probe_api.js --kw="${{ github.event.inputs.kw }}" || true
+          echo "--- api_dump 大小 ---"
+          ls -la api_dump.json 2>/dev/null || echo "无 dump"
