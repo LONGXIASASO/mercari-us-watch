@@ -32,6 +32,6 @@ jobs:
 
       - name: 抓接口结构
         run: |
-          xvfb-run -a node probe_data.js --kw="${{ github.event.inputs.kw }}" || true
+          xvfb-run -a node probe_final.js --kw="${{ github.event.inputs.kw }}" || true
           echo "--- api_dump 大小 ---"
           ls -la api_dump.json 2>/dev/null || echo "无 dump"
